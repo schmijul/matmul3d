@@ -3,8 +3,6 @@
 Interactive 3D visualization of matrix multiplication in the browser using Three.js.
 
 ![Three.js](https://img.shields.io/badge/Three.js-0.164-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-
 ## Features
 
 - **3D Animation** — Matrix A (blue), Matrix B (purple), and Result C (green) as floating cubes in 3D space
@@ -41,6 +39,3 @@ Alternatively, open `index.html` directly in a modern browser (requires Import M
 - Vanilla JavaScript (ES Modules)
 - No build tools required
 
-## License
-
-MIT
