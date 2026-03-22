@@ -1,46 +1,46 @@
-# 3D Matrix Multiplikation
+# 3D Matrix Multiplication
 
-Interaktive 3D-Visualisierung der Matrixmultiplikation im Browser mit Three.js.
+Interactive 3D visualization of matrix multiplication in the browser using Three.js.
 
 ![Three.js](https://img.shields.io/badge/Three.js-0.164-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
-- **3D-Animation** — Matrix A (blau), Matrix B (lila) und Ergebnis C (gruen) als schwebende Wuerfel im Raum
-- **Step-by-step Berechnung** — zeigt fuer jedes Element C[i][j], welche Zeile und Spalte multipliziert werden
-- **Partikel & Beams** — leuchtende Verbindungslinien und fliegende Partikel visualisieren den Datenfluss
-- **Frei drehbare Kamera** — Orbit Controls per Maus (ziehen, scrollen, rechtsklick)
-- **Konfigurierbare Matrizen** — Dimensionen bis 5x5, alle Werte frei eingebbar
-- **Tempo-Regler** — Animation stufenlos schneller oder langsamer
-- **Zero Dependencies** — einzelne HTML-Datei, Three.js wird per CDN geladen
+- **3D Animation** — Matrix A (blue), Matrix B (purple), and Result C (green) as floating cubes in 3D space
+- **Step-by-step Computation** — shows for each element C[i][j] which row and column are being multiplied
+- **Particles & Beams** — glowing connection lines and flying particles visualize the data flow
+- **Orbit Camera** — freely rotatable camera via mouse (drag, scroll, right-click)
+- **Configurable Matrices** — dimensions up to 5x5, all values freely editable
+- **Speed Control** — smoothly adjust animation speed
+- **Zero Dependencies** — single HTML file, Three.js loaded via CDN
 
-## Schnellstart
+## Quick Start
 
 ```bash
-# Lokalen Server starten
+# Start a local server
 python3 -m http.server 8080
 
-# Browser oeffnen
+# Open browser
 open http://localhost:8080
 ```
 
-Alternativ: `index.html` direkt mit einem modernen Browser oeffnen (erfordert Import Maps Support).
+Alternatively, open `index.html` directly in a modern browser (requires Import Maps support).
 
-## Bedienung
+## Usage
 
-1. **Dimensionen** festlegen (Matrix A: M x N, Matrix B: N x P)
-2. **Werte eingeben** oder **Zufall** klicken
-3. **Berechnen** starten — die Animation zeigt Schritt fuer Schritt die Multiplikation
-4. **Kamera drehen** per Maus, **Tempo** per Slider anpassen
-5. **Zuruecksetzen** um von vorne zu beginnen
+1. Set **dimensions** (Matrix A: M x N, Matrix B: N x P)
+2. **Enter values** or click **Zufall** (Random)
+3. Click **Berechnen** (Compute) — the animation shows the multiplication step by step
+4. **Rotate camera** with mouse, adjust **speed** with the slider
+5. Click **Zuruecksetzen** (Reset) to start over
 
-## Technologie
+## Tech
 
-- [Three.js](https://threejs.org/) — 3D-Rendering mit WebGL
+- [Three.js](https://threejs.org/) — 3D rendering with WebGL
 - Vanilla JavaScript (ES Modules)
-- Keine Build-Tools noetig
+- No build tools required
 
-## Lizenz
+## License
 
 MIT

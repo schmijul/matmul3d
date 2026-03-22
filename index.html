@@ -747,7 +747,9 @@ function resetAll() {
 }
 
 document.getElementById('btn-start').addEventListener('click', () => {
-  rebuildGrids();
+  M = Math.max(1, Math.min(5, parseInt(dimM.value) || 2));
+  N = Math.max(1, Math.min(5, parseInt(dimN.value) || 3));
+  P = Math.max(1, Math.min(5, parseInt(dimP.value) || 2));
   animateMultiplication();
 });
 document.getElementById('btn-reset').addEventListener('click', resetAll);
