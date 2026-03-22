@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Matrix Multiplikation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a1a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #ui-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 100vh;
+    background: rgba(10, 10, 30, 0.92);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(100, 140, 255, 0.15);
+    padding: 24px 20px;
+    overflow-y: auto;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  #ui-panel h1 {
+    font-size: 1.3em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6c8cff, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .section-label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #7a8aaa;
+    margin-bottom: 4px;
+  }
+
+  .dim-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .dim-row label {
+    font-size: 0.85em;
+    color: #99a;
+    min-width: 80px;
+  }
+
+  .dim-row input {
+    width: 50px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(100, 140, 255, 0.25);
+    background: rgba(255,255,255,0.05);
+    color: #e0e0e0;
+    font-size: 0.9em;
+    text-align: center;
+  }
+
+  .dim-row span {
+    color: #556;
+    font-size: 0.85em;
+  }
+
+  .matrix-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .matrix-grid {
+    display: inline-grid;
+    gap: 4px;
+  }
+
+  .matrix-grid input {
+    width: 48px;
+    height: 34px;
+    border-radius: 5px;
+    border: 1px solid rgba(100, 140, 255, 0.2);
+    background: rgba(255,255,255,0.04);
+    color: #e0e0e0;
+    font-size: 0.85em;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .matrix-grid input:focus {
+    outline: none;
+    border-color: rgba(100, 140, 255, 0.6);
+    background: rgba(100, 140, 255, 0.08);
+  }
+
+  .matrix-grid.matrix-a input:focus { border-color: #6c8cff; background: rgba(108,140,255,0.1); }
+  .matrix-grid.matrix-b input:focus { border-color: #a855f7; background: rgba(168,85,247,0.1); }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #btn-start {
+    background: linear-gradient(135deg, #6c8cff, #a855f7);
+    color: #fff;
+  }
+  #btn-start:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,140,255,0.3); }
+
+  #btn-random {
+    background: rgba(255,255,255,0.06);
+    color: #99a;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  #btn-random:hover { background: rgba(255,255,255,0.1); color: #ccc; }
+
+  #btn-reset {
+    background: rgba(255,80,80,0.1);
+    color: #f77;
+    border: 1px solid rgba(255,80,80,0.2);
+  }
+  #btn-reset:hover { background: rgba(255,80,80,0.15); }
+
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .speed-control label { font-size: 0.85em; color: #99a; min-width: 70px; }
+
+  .speed-control input[type=range] {
+    flex: 1;
+    accent-color: #6c8cff;
+  }
+
+  #status-bar {
+    margin-top: auto;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(108,140,255,0.06);
+    border: 1px solid rgba(108,140,255,0.12);
+    font-size: 0.8em;
+    line-height: 1.5;
+    color: #8898bb;
+  }
+
+  #status-bar .highlight-a { color: #6c8cff; font-weight: 600; }
+  #status-bar .highlight-b { color: #a855f7; font-weight: 600; }
+  #status-bar .highlight-c { color: #34d399; font-weight: 600; }
+
+  #canvas-container {
+    position: absolute;
+    top: 0;
+    left: 340px;
+    right: 0;
+    bottom: 0;
+  }
+
+  canvas { display: block; }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78em;
+    color: #8898bb;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<div id="ui-panel">
+  <h1>3D Matrix Multiplikation</h1>
+
+  <div>
+    <div class="section-label">Dimensionen</div>
+    <div class="dim-row">
+      <label>Matrix A:</label>
+      <input type="number" id="dim-m" value="2" min="1" max="5">
+      <span>&times;</span>
+      <input type="number" id="dim-n" value="3" min="1" max="5">
+    </div>
+    <div class="dim-row" style="margin-top:6px">
+      <label>Matrix B:</label>
+      <input type="number" id="dim-n2" value="3" min="1" max="5" disabled>
+      <span>&times;</span>
+      <input type="number" id="dim-p" value="2" min="1" max="5">
+    </div>
+  </div>
+
+  <div class="matrix-input-section">
+    <div class="section-label">Matrix A</div>
+    <div class="matrix-grid matrix-a" id="grid-a"></div>
+  </div>
+
+  <div class="matrix-input-section">
+    <div class="section-label">Matrix B</div>
+    <div class="matrix-grid matrix-b" id="grid-b"></div>
+  </div>
+
+  <div class="btn-row">
+    <button id="btn-random">Zufall</button>
+    <button id="btn-start">Berechnen</button>
+  </div>
+
+  <div class="speed-control">
+    <label>Tempo:</label>
+    <input type="range" id="speed-slider" min="0.2" max="3" step="0.1" value="1">
+  </div>
+
+  <div class="btn-row">
+    <button id="btn-reset">Zuruecksetzen</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#6c8cff"></div>Matrix A</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Matrix B</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Ergebnis C</div>
+  </div>
+
+  <div id="status-bar">Gib Werte ein und klicke <b>Berechnen</b>.</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── State ──
+let M = 2, N = 3, P = 2;
+let matA = [], matB = [];
+let animating = false;
+let speed = 1;
+
+const COLOR_A     = new THREE.Color(0x6c8cff);
+const COLOR_B     = new THREE.Color(0xa855f7);
+const COLOR_C     = new THREE.Color(0x34d399);
+const COLOR_DIM   = new THREE.Color(0x222233);
+const COLOR_HIGH  = new THREE.Color(0xffd700);
+const COLOR_BG    = new THREE.Color(0x0a0a1a);
+
+// ── Three.js setup ──
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = COLOR_BG;
+scene.fog = new THREE.FogExp2(0x0a0a1a, 0.012);
+
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+camera.position.set(12, 10, 16);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.target.set(0, 0, 0);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(10, 15, 10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+scene.add(dirLight);
+
+const pointLight1 = new THREE.PointLight(0x6c8cff, 0.5, 50);
+pointLight1.position.set(-8, 8, -5);
+scene.add(pointLight1);
+
+const pointLight2 = new THREE.PointLight(0xa855f7, 0.5, 50);
+pointLight2.position.set(8, 6, 8);
+scene.add(pointLight2);
+
+// Ground grid
+const gridHelper = new THREE.GridHelper(40, 40, 0x1a1a3a, 0x111128);
+gridHelper.position.y = -0.5;
+scene.add(gridHelper);
+
+// ── Resize ──
+function resize() {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── UI ──
+const dimM = document.getElementById('dim-m');
+const dimN = document.getElementById('dim-n');
+const dimN2 = document.getElementById('dim-n2');
+const dimP = document.getElementById('dim-p');
+const gridAEl = document.getElementById('grid-a');
+const gridBEl = document.getElementById('grid-b');
+const statusBar = document.getElementById('status-bar');
+const speedSlider = document.getElementById('speed-slider');
+
+dimN.addEventListener('change', () => { dimN2.value = dimN.value; });
+
+function buildGrid(el, rows, cols, cssClass) {
+  el.innerHTML = '';
+  el.style.gridTemplateColumns = `repeat(${cols}, 48px)`;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.value = 0;
+      inp.dataset.r = r;
+      inp.dataset.c = c;
+      el.appendChild(inp);
+    }
+  }
+}
+
+function rebuildGrids() {
+  M = Math.max(1, Math.min(5, parseInt(dimM.value) || 2));
+  N = Math.max(1, Math.min(5, parseInt(dimN.value) || 3));
+  P = Math.max(1, Math.min(5, parseInt(dimP.value) || 2));
+  dimM.value = M; dimN.value = N; dimN2.value = N; dimP.value = P;
+  buildGrid(gridAEl, M, N, 'matrix-a');
+  buildGrid(gridBEl, N, P, 'matrix-b');
+}
+
+function readMatrix(el, rows, cols) {
+  const mat = [];
+  const inputs = el.querySelectorAll('input');
+  for (let r = 0; r < rows; r++) {
+    mat[r] = [];
+    for (let c = 0; c < cols; c++) {
+      mat[r][c] = parseFloat(inputs[r * cols + c].value) || 0;
+    }
+  }
+  return mat;
+}
+
+function randomize() {
+  [gridAEl, gridBEl].forEach(el => {
+    el.querySelectorAll('input').forEach(inp => {
+      inp.value = Math.floor(Math.random() * 19) - 9;
+    });
+  });
+}
+
+dimM.addEventListener('change', rebuildGrids);
+dimN.addEventListener('change', rebuildGrids);
+dimP.addEventListener('change', rebuildGrids);
+document.getElementById('btn-random').addEventListener('click', randomize);
+speedSlider.addEventListener('input', () => { speed = parseFloat(speedSlider.value); });
+
+rebuildGrids();
+
+// ── 3D Scene objects ──
+let cubesA = [], cubesB = [], cubesC = [];
+let labelsA = [], labelsB = [], labelsC = [];
+let particles = [];
+let beams = [];
+const sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
+
+const CELL = 1.4;
+const GAP_AB = 3;
+const GAP_BC = 3;
+
+function clearScene() {
+  while (sceneGroup.children.length) {
+    const c = sceneGroup.children[0];
+    sceneGroup.remove(c);
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) {
+      if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+      else c.material.dispose();
+    }
+  }
+  cubesA = []; cubesB = []; cubesC = [];
+  labelsA = []; labelsB = []; labelsC = [];
+  particles = [];
+  beams = [];
+}
+
+function createRoundedBox(w, h, d, radius) {
+  const shape = new THREE.Shape();
+  const x = -w/2, y = -h/2;
+  shape.moveTo(x + radius, y);
+  shape.lineTo(x + w - radius, y);
+  shape.quadraticCurveTo(x + w, y, x + w, y + radius);
+  shape.lineTo(x + w, y + h - radius);
+  shape.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  shape.lineTo(x + radius, y + h);
+  shape.quadraticCurveTo(x, y + h, x, y + h - radius);
+  shape.lineTo(x, y + radius);
+  shape.quadraticCurveTo(x, y, x + radius, y);
+
+  const extrudeSettings = { depth: d, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 2 };
+  const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  geo.translate(0, 0, -d/2);
+  return geo;
+}
+
+function makeTextSprite(text, color = '#ffffff', size = 0.55) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.font = 'bold 40px "Segoe UI", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 64, 32);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(size * 2, size, 1);
+  return sprite;
+}
+
+function makeCube(value, baseColor, x, y, z) {
+  const geo = createRoundedBox(1.1, 1.1, 1.1, 0.12);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: baseColor.clone().multiplyScalar(0.35),
+    emissive: baseColor.clone().multiplyScalar(0.08),
+    metalness: 0.2,
+    roughness: 0.5,
+    transparent: true,
+    opacity: 0.85,
+    clearcoat: 0.3,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData = { baseColor: baseColor.clone(), value };
+  sceneGroup.add(mesh);
+
+  const label = makeTextSprite(String(value), '#' + baseColor.clone().lerp(new THREE.Color(1,1,1), 0.6).getHexString());
+  label.position.set(x, y, z + 0.7);
+  sceneGroup.add(label);
+
+  return { mesh, label };
+}
+
+function buildMatrices() {
+  clearScene();
+  matA = readMatrix(gridAEl, M, N);
+  matB = readMatrix(gridBEl, N, P);
+
+  const offsetAx = -(N * CELL) / 2 - GAP_AB;
+  const offsetBz = -(P * CELL) / 2 - GAP_BC;
+  const offsetCx = 0;
+  const offsetCz = 0;
+
+  // Matrix A — flat on XY plane, left side
+  cubesA = [];
+  for (let r = 0; r < M; r++) {
+    cubesA[r] = [];
+    for (let c = 0; c < N; c++) {
+      const x = offsetAx + c * CELL;
+      const y = (M - 1 - r) * CELL;
+      const z = -2;
+      cubesA[r][c] = makeCube(matA[r][c], COLOR_A, x, y, z);
+    }
+  }
+
+  // Matrix B — flat on YZ plane, back side
+  cubesB = [];
+  for (let r = 0; r < N; r++) {
+    cubesB[r] = [];
+    for (let c = 0; c < P; c++) {
+      const x = 2;
+      const y = (N - 1 - r) * CELL;
+      const z = offsetBz + c * CELL;
+      cubesB[r][c] = makeCube(matB[r][c], COLOR_B, x, y, z);
+    }
+  }
+
+  // Result C — center
+  cubesC = [];
+  const matC = [];
+  for (let r = 0; r < M; r++) {
+    cubesC[r] = [];
+    matC[r] = [];
+    for (let c = 0; c < P; c++) {
+      let sum = 0;
+      for (let k = 0; k < N; k++) sum += matA[r][k] * matB[k][c];
+      matC[r][c] = sum;
+
+      const x = offsetAx + N * CELL + GAP_AB + c * CELL;
+      const y = (M - 1 - r) * CELL;
+      const z = offsetBz + P * CELL + GAP_BC + c * CELL;
+
+      // Place C in a nice grid position
+      const cx = c * CELL;
+      const cy = (M - 1 - r) * CELL;
+      const cz = 2;
+      cubesC[r][c] = makeCube(0, COLOR_C, cx, cy, cz);
+      cubesC[r][c].targetValue = sum;
+      cubesC[r][c].mesh.material.opacity = 0.25;
+    }
+  }
+
+  // Axis labels
+  const labelA = makeTextSprite('A', '#6c8cff', 0.8);
+  labelA.position.set(offsetAx + (N * CELL) / 2 - CELL/2, M * CELL + 0.5, -2);
+  sceneGroup.add(labelA);
+
+  const labelB = makeTextSprite('B', '#a855f7', 0.8);
+  labelB.position.set(2, N * CELL + 0.5, offsetBz + (P * CELL) / 2 - CELL/2);
+  sceneGroup.add(labelB);
+
+  const labelC = makeTextSprite('C = A x B', '#34d399', 0.8);
+  labelC.position.set((P * CELL) / 2 - CELL/2, M * CELL + 0.5, 2);
+  sceneGroup.add(labelC);
+
+  // Center camera
+  const cx = 0, cy = Math.max(M, N) * CELL / 2, cz = 0;
+  controls.target.set(cx, cy, cz);
+  const dist = Math.max(M, N, P) * 3 + 8;
+  camera.position.set(cx + dist * 0.7, cy + dist * 0.5, cz + dist * 0.8);
+}
+
+// ── Animation ──
+function setStatus(html) {
+  statusBar.innerHTML = html;
+}
+
+function dimAllCubes() {
+  [cubesA, cubesB, cubesC].forEach(mat => {
+    mat.forEach(row => row.forEach(({ mesh }) => {
+      mesh.material.emissiveIntensity = 0;
+      mesh.material.emissive.copy(mesh.userData.baseColor).multiplyScalar(0.05);
+      mesh.material.opacity = 0.4;
+      mesh.scale.set(1, 1, 1);
+    }));
+  });
+}
+
+function highlightCube(cube, color, intensity = 1) {
+  cube.mesh.material.emissive.copy(color);
+  cube.mesh.material.emissiveIntensity = 0.4 * intensity;
+  cube.mesh.material.opacity = 0.95;
+}
+
+function createBeam(from, to, color) {
+  const points = [from.clone(), to.clone()];
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.7, linewidth: 2 });
+  const line = new THREE.Line(geo, mat);
+  sceneGroup.add(line);
+  beams.push(line);
+  return line;
+}
+
+function createParticle(from, to, color, duration) {
+  const geo = new THREE.SphereGeometry(0.12, 8, 8);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(from);
+  sceneGroup.add(mesh);
+
+  // Glow
+  const glowGeo = new THREE.SphereGeometry(0.25, 8, 8);
+  const glowMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3 });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  mesh.add(glow);
+
+  const particle = { mesh, from: from.clone(), to: to.clone(), t: 0, duration, color };
+  particles.push(particle);
+  return particle;
+}
+
+function clearBeamsAndParticles() {
+  beams.forEach(b => { sceneGroup.remove(b); b.geometry.dispose(); b.material.dispose(); });
+  beams = [];
+  particles.forEach(p => { sceneGroup.remove(p.mesh); p.mesh.geometry.dispose(); p.mesh.material.dispose(); });
+  particles = [];
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+function updateCubeLabel(cubeObj, value) {
+  const color = '#' + cubeObj.mesh.userData.baseColor.clone().lerp(new THREE.Color(1,1,1), 0.6).getHexString();
+  const newLabel = makeTextSprite(String(Math.round(value * 100) / 100), color);
+  newLabel.position.copy(cubeObj.label.position);
+  sceneGroup.remove(cubeObj.label);
+  cubeObj.label.material.map.dispose();
+  cubeObj.label.material.dispose();
+  sceneGroup.add(newLabel);
+  cubeObj.label = newLabel;
+  cubeObj.mesh.userData.value = value;
+}
+
+async function animateMultiplication() {
+  if (animating) return;
+  animating = true;
+
+  buildMatrices();
+  await sleep(500);
+
+  for (let i = 0; i < M; i++) {
+    for (let j = 0; j < P; j++) {
+      let sum = 0;
+
+      // Highlight target cell
+      dimAllCubes();
+      highlightCube(cubesC[i][j], COLOR_C, 0.6);
+      cubesC[i][j].mesh.scale.set(1.15, 1.15, 1.15);
+
+      setStatus(`Berechne <span class="highlight-c">C[${i}][${j}]</span> = Zeile ${i} von A &times; Spalte ${j} von B`);
+
+      for (let k = 0; k < N; k++) {
+        if (!animating) return;
+
+        // Highlight current A and B elements
+        highlightCube(cubesA[i][k], COLOR_A);
+        highlightCube(cubesB[k][j], COLOR_B);
+        cubesA[i][k].mesh.scale.set(1.2, 1.2, 1.2);
+        cubesB[k][j].mesh.scale.set(1.2, 1.2, 1.2);
+
+        // Beam lines
+        const posA = cubesA[i][k].mesh.position.clone();
+        const posB = cubesB[k][j].mesh.position.clone();
+        const posC = cubesC[i][j].mesh.position.clone();
+
+        createBeam(posA, posC, COLOR_A);
+        createBeam(posB, posC, COLOR_B);
+
+        // Particles flying to C
+        createParticle(posA, posC, COLOR_A, 600 / speed);
+        createParticle(posB, posC, COLOR_B, 600 / speed);
+
+        const product = matA[i][k] * matB[k][j];
+        sum += product;
+
+        setStatus(
+          `<span class="highlight-c">C[${i}][${j}]</span> += ` +
+          `<span class="highlight-a">A[${i}][${k}]=${matA[i][k]}</span> &times; ` +
+          `<span class="highlight-b">B[${k}][${j}]=${matB[k][j]}</span> = ${product}` +
+          `<br>Zwischensumme: <span class="highlight-c">${sum}</span>`
+        );
+
+        await sleep(800 / speed);
+
+        // Update C value
+        updateCubeLabel(cubesC[i][j], sum);
+
+        // Pulse C
+        cubesC[i][j].mesh.scale.set(1.3, 1.3, 1.3);
+        highlightCube(cubesC[i][j], COLOR_HIGH, 1.2);
+        await sleep(300 / speed);
+        cubesC[i][j].mesh.scale.set(1.15, 1.15, 1.15);
+        highlightCube(cubesC[i][j], COLOR_C, 0.8);
+
+        clearBeamsAndParticles();
+
+        // Reset A, B highlights
+        cubesA[i][k].mesh.scale.set(1, 1, 1);
+        cubesB[k][j].mesh.scale.set(1, 1, 1);
+        cubesA[i][k].mesh.material.opacity = 0.6;
+        cubesB[k][j].mesh.material.opacity = 0.6;
+      }
+
+      // Mark C cell as done
+      cubesC[i][j].mesh.material.opacity = 0.95;
+      cubesC[i][j].mesh.scale.set(1, 1, 1);
+      highlightCube(cubesC[i][j], COLOR_C, 0.5);
+      await sleep(200 / speed);
+    }
+  }
+
+  // Final: light up all C
+  dimAllCubes();
+  cubesC.forEach(row => row.forEach(cube => {
+    highlightCube(cube, COLOR_C, 0.8);
+    cube.mesh.material.opacity = 0.95;
+  }));
+
+  // Also keep A and B visible
+  cubesA.forEach(row => row.forEach(cube => {
+    cube.mesh.material.opacity = 0.7;
+  }));
+  cubesB.forEach(row => row.forEach(cube => {
+    cube.mesh.material.opacity = 0.7;
+  }));
+
+  setStatus('Fertig! Ergebnismatrix <span class="highlight-c">C</span> berechnet.');
+  animating = false;
+}
+
+function resetAll() {
+  animating = false;
+  clearScene();
+  setStatus('Gib Werte ein und klicke <b>Berechnen</b>.');
+}
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  rebuildGrids();
+  animateMultiplication();
+});
+document.getElementById('btn-reset').addEventListener('click', resetAll);
+
+// ── Render loop ──
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+
+  // Animate particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.t += (delta * 1000);
+    const progress = Math.min(p.t / p.duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+
+    p.mesh.position.lerpVectors(p.from, p.to, eased);
+    p.mesh.material.opacity = 1 - progress * 0.5;
+
+    if (progress >= 1) {
+      sceneGroup.remove(p.mesh);
+      p.mesh.geometry.dispose();
+      p.mesh.material.dispose();
+      particles.splice(i, 1);
+    }
+  }
+
+  // Gentle floating animation for all cubes
+  const time = clock.elapsedTime;
+  sceneGroup.children.forEach(child => {
+    if (child.isMesh && child.geometry.type === 'ExtrudeGeometry') {
+      child.rotation.x = Math.sin(time * 0.3 + child.position.x) * 0.02;
+      child.rotation.z = Math.cos(time * 0.4 + child.position.z) * 0.02;
+    }
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>
