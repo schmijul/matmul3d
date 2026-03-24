@@ -3,6 +3,10 @@
 Interactive 3D visualization of matrix multiplication in the browser using Three.js.
 
 ![Three.js](https://img.shields.io/badge/Three.js-0.164-blue)
+
+## Screenshot
+
+![3D Matrix Multiplication Screenshot](imgs/Pasted%20image.png)
 ## Features
 
 - **3D Animation** — Matrix A (blue), Matrix B (purple), and Result C (green) as floating cubes in 3D space
@@ -28,14 +32,13 @@ Alternatively, open `index.html` directly in a modern browser (requires Import M
 ## Usage
 
 1. Set **dimensions** (Matrix A: M x N, Matrix B: N x P)
-2. **Enter values** or click **Zufall** (Random)
-3. Click **Berechnen** (Compute) — the animation shows the multiplication step by step
+2. **Enter values** or click **Random**
+3. Click **Compute** — the animation shows the multiplication step by step
 4. **Rotate camera** with mouse, adjust **speed** with the slider
-5. Click **Zuruecksetzen** (Reset) to start over
+5. Click **Reset** to start over
 
 ## Tech
 
 - [Three.js](https://threejs.org/) — 3D rendering with WebGL
 - Vanilla JavaScript (ES Modules)
 - No build tools required
-

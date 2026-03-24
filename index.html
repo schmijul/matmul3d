@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Matrix Multiplikation</title>
+<title>3D Matrix Multiplication</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -204,10 +204,10 @@
 <body>
 
 <div id="ui-panel">
-  <h1>3D Matrix Multiplikation</h1>
+  <h1>3D Matrix Multiplication</h1>
 
   <div>
-    <div class="section-label">Dimensionen</div>
+    <div class="section-label">Dimensions</div>
     <div class="dim-row">
       <label>Matrix A:</label>
       <input type="number" id="dim-m" value="2" min="1" max="5">
@@ -233,26 +233,26 @@
   </div>
 
   <div class="btn-row">
-    <button id="btn-random">Zufall</button>
-    <button id="btn-start">Berechnen</button>
+    <button id="btn-random">Random</button>
+    <button id="btn-start">Compute</button>
   </div>
 
   <div class="speed-control">
-    <label>Tempo:</label>
+    <label>Speed:</label>
     <input type="range" id="speed-slider" min="0.2" max="3" step="0.1" value="1">
   </div>
 
   <div class="btn-row">
-    <button id="btn-reset">Zuruecksetzen</button>
+    <button id="btn-reset">Reset</button>
   </div>
 
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#6c8cff"></div>Matrix A</div>
     <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Matrix B</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Ergebnis C</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Result C</div>
   </div>
 
-  <div id="status-bar">Gib Werte ein und klicke <b>Berechnen</b>.</div>
+  <div id="status-bar">Enter values and click <b>Compute</b>.</div>
 </div>
 
 <div id="canvas-container"></div>
@@ -659,7 +659,7 @@ async function animateMultiplication() {
       highlightCube(cubesC[i][j], COLOR_C, 0.6);
       cubesC[i][j].mesh.scale.set(1.15, 1.15, 1.15);
 
-      setStatus(`Berechne <span class="highlight-c">C[${i}][${j}]</span> = Zeile ${i} von A &times; Spalte ${j} von B`);
+      setStatus(`Computing <span class="highlight-c">C[${i}][${j}]</span> = Row ${i} of A &times; Column ${j} of B`);
 
       for (let k = 0; k < N; k++) {
         if (!animating) return;
@@ -689,7 +689,7 @@ async function animateMultiplication() {
           `<span class="highlight-c">C[${i}][${j}]</span> += ` +
           `<span class="highlight-a">A[${i}][${k}]=${matA[i][k]}</span> &times; ` +
           `<span class="highlight-b">B[${k}][${j}]=${matB[k][j]}</span> = ${product}` +
-          `<br>Zwischensumme: <span class="highlight-c">${sum}</span>`
+          `<br>Running sum: <span class="highlight-c">${sum}</span>`
         );
 
         await sleep(800 / speed);
@@ -736,14 +736,14 @@ async function animateMultiplication() {
     cube.mesh.material.opacity = 0.7;
   }));
 
-  setStatus('Fertig! Ergebnismatrix <span class="highlight-c">C</span> berechnet.');
+  setStatus('Done! Result matrix <span class="highlight-c">C</span> computed.');
   animating = false;
 }
 
 function resetAll() {
   animating = false;
   clearScene();
-  setStatus('Gib Werte ein und klicke <b>Berechnen</b>.');
+  setStatus('Enter values and click <b>Compute</b>.');
 }
 
 document.getElementById('btn-start').addEventListener('click', () => {
